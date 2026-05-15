@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#042C53">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="안심점검">
+<title>온리원키즈포스쿨 — 인터넷 안심 점검 v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+:root {
+  --navy:#042C53; --navy-mid:#185FA5; --navy-light:#E6F1FB;
+  --good:#27500A; --good-bg:#EAF3DE; --good-border:#639922; --good-mid:#3B6D11;
+  --warn:#633806; --warn-bg:#FAEEDA; --warn-border:#BA7517; --warn-mid:#854F0B;
+  --bad:#791F1F;  --bad-bg:#FCEBEB;  --bad-border:#E24B4A;  --bad-mid:#A32D2D;
+  --surface:#fff; --surface2:#F5F4F0; --border:rgba(0,0,0,.1);
+  --text:#1a1a1a; --text2:#666; --text3:#999;
+  --radius:12px; --radius-sm:8px;
+}
+html,body { background:#F0EEE8; font-family:'Noto Sans KR',sans-serif; color:var(--text); overflow-x:hidden; }
+
+/* ── header ── */
+.app-header { background:var(--navy); padding:52px 20px 20px; position:relative; overflow:hidden; }
+.app-header::before { content:''; position:absolute; top:-40px; right:-40px; width:180px; height:180px; border-radius:50%; background:rgba(255,255,255,.04); }
+.app-header::after  { content:''; position:absolute; bottom:-20px; left:20px; width:100px; height:100px; border-radius:50%; background:rgba(255,255,255,.03); }
+.brand-tag { font-size:10px; letter-spacing:.12em; color:rgba(255,255,255,.5); text-transform:uppercase; margin-bottom:4px; }
+.app-title { font-size:20px; font-weight:700; color:#fff; line-height:1.3; margin-bottom:3px; }
+.app-sub   { font-size:12px; color:rgba(255,255,255,.55); }
+
+/* ── progress ── */
+.progress-wrap { padding:16px 20px 0; background:var(--navy); }
+.step-dots { display:flex; gap:6px; padding-bottom:16px; }
+.step-dot  { height:3px; border-radius:2px; flex:1; background:rgba(255,255,255,.2); transition:background .3s; }
+.step-dot.done   { background:#97C459; }
+.step-dot.active { background:#fff; }
+.step-info { font-size:11px; color:rgba(255,255,255,.5); padding:0 20px 12px; background:var(--navy); letter-spacing:.03em; }
+
+/* ── layout ── */
+.content { padding:16px 16px 32px; }
+.card { background:var(--surface); border-radius:var(--radius); padding:16px; margin-bottom:12px; border:.5px solid var(--border); }
+.card-title { font-size:11px; font-weight:700; color:var(--text2); letter-spacing:.08em; text-transform:uppercase; margin-bottom:14px; display:flex; align-items:center; gap:6px; }
+.card-title svg { opacity:.6; flex-shrink:0; }
+
+/* ── field ── */
+.field { margin-bottom:14px; }
+.field:last-child { margin-bottom:0; }
+.field-label { font-size:12px; color:var(--text2); margin-bottom:6px; display:block; font-weight:500; }
+.field input, .field select, .field textarea { width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 13px; font-size:15px; background:var(--surface); color:var(--text); font-family:'Noto Sans KR',sans-serif; -webkit-appearance:none; appearance:none; }
+.field input:focus, .field select:focus, .field textarea:focus { outline:none; border-color:var(--navy-mid); box-shadow:0 0 0 3px rgba(24,95,165,.12); }
+.field textarea { resize:none; line-height:1.6; }
+
+/* ── number picker ── */
+.num-wrap { margin-bottom:14px; }
+.num-label { font-size:12px; color:var(--text2); margin-bottom:6px; display:block; font-weight:500; }
+.num-picker { display:flex; align-items:center; border:1px solid var(--border); border-radius:var(--radius-sm); overflow:hidden; background:var(--surface2); height:52px; }
+.num-btn { width:52px; height:52px; border:none; background:transparent; font-size:24px; cursor:pointer; color:var(--text2); flex-shrink:0; font-family:'Noto Sans KR',sans-serif; transition:background .1s; display:flex; align-items:center; justify-content:center; }
+.num-btn:active { background:rgba(0,0,0,.08); }
+.num-val  { flex:1; text-align:center; font-size:26px; font-weight:700; color:var(--navy); font-family:'DM Mono',monospace; }
+.num-unit { font-size:12px; color:var(--text3); text-align:center; margin-top:4px; }
+.num-tip  { font-size:11px; font-weight:700; padding:6px 10px; border-radius:6px; margin-top:8px; text-align:center; display:none; }
+.num-tip.show { display:block; }
+
+/* ── number grid ── */
+.ngrid { display:grid; grid-template-columns:repeat(6,1fr); gap:5px; }
+.ngrid-btn { padding:9px 4px; border:1px solid var(--border); border-radius:6px; background:var(--surface2); color:var(--text2); font-size:13px; font-weight:500; cursor:pointer; text-align:center; font-family:'DM Mono',monospace; transition:all .12s; }
+.ngrid-btn:active { transform:scale(.94); }
+.ngrid-btn.sel    { background:var(--navy-light); border-color:var(--navy-mid); color:var(--navy); font-weight:700; }
+.ngrid-btn.sel-hi { background:#EAF3DE; border-color:#639922; color:#27500A; font-weight:700; }
+
+/* ── toggle buttons ── */
+.tgroup { display:flex; gap:6px; flex-wrap:wrap; }
+.tbtn { flex:1; min-width:0; padding:10px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface2); color:var(--text2); font-size:13px; font-weight:500; cursor:pointer; text-align:center; font-family:'Noto Sans KR',sans-serif; transition:all .15s; white-space:nowrap; line-height:1.3; }
+.tbtn:active { transform:scale(.97); }
+.tbtn.sel-ok   { background:#EAF3DE; border-color:#639922; color:#27500A; }
+.tbtn.sel-warn { background:#FAEEDA; border-color:#BA7517; color:#633806; }
+.tbtn.sel-bad  { background:#FCEBEB; border-color:#E24B4A; color:#791F1F; }
+.tbtn.sel-blue { background:var(--navy-light); border-color:var(--navy-mid); color:var(--navy); }
+
+/* ── plan grid ── */
+.plan-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:8px; }
+.plan-btn { padding:10px 8px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface2); color:var(--text2); font-size:13px; font-weight:500; cursor:pointer; text-align:center; font-family:'Noto Sans KR',sans-serif; transition:all .15s; line-height:1.4; }
+.plan-btn .ps { font-size:16px; font-weight:700; font-family:'DM Mono',monospace; display:block; }
+.plan-btn .pn { font-size:10px; color:var(--text3); display:block; margin-top:2px; }
+.plan-btn:active { transform:scale(.97); }
+.plan-btn.sel-ok   { background:#EAF3DE; border-color:#639922; }
+.plan-btn.sel-ok   .ps { color:#27500A; } .plan-btn.sel-ok .pn { color:#3B6D11; }
+.plan-btn.sel-warn { background:#FAEEDA; border-color:#BA7517; }
+.plan-btn.sel-warn .ps { color:#633806; } .plan-btn.sel-warn .pn { color:#854F0B; }
+
+/* ── router lookup ── */
+.router-input-wrap { position:relative; }
+.router-input-wrap input { padding-right:80px; }
+.lookup-btn { position:absolute; right:6px; top:50%; transform:translateY(-50%); padding:6px 12px; background:var(--navy); color:#fff; border:none; border-radius:6px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; white-space:nowrap; }
+.lookup-btn:disabled { background:var(--border); color:var(--text3); cursor:not-allowed; }
+.lookup-btn.loading { background:#185FA5; }
+
+.router-result { margin-top:10px; border-radius:var(--radius-sm); overflow:hidden; border:1px solid var(--border); }
+.router-result-header { padding:10px 13px; display:flex; align-items:center; gap:8px; }
+.router-result-header.ok   { background:#EAF3DE; }
+.router-result-header.warn { background:#FAEEDA; }
+.router-result-header.unknown { background:var(--surface2); }
+.router-result-icon { font-size:18px; flex-shrink:0; }
+.router-result-main { flex:1; }
+.router-result-name { font-size:13px; font-weight:700; }
+.router-result-header.ok   .router-result-name { color:var(--good); }
+.router-result-header.warn .router-result-name { color:var(--warn); }
+.router-result-header.unknown .router-result-name { color:var(--text2); }
+.router-result-sub  { font-size:11px; margin-top:1px; }
+.router-result-header.ok   .router-result-sub { color:var(--good-mid); }
+.router-result-header.warn .router-result-sub { color:var(--warn-mid); }
+.router-result-header.unknown .router-result-sub { color:var(--text3); }
+
+.router-spec-grid { display:grid; grid-template-columns:1fr 1fr; border-top:1px solid var(--border); }
+.router-spec-cell { padding:9px 13px; border-right:1px solid var(--border); border-bottom:1px solid var(--border); }
+.router-spec-cell:nth-child(even) { border-right:none; }
+.router-spec-cell:nth-last-child(-n+2) { border-bottom:none; }
+.router-spec-lbl { font-size:10px; color:var(--text3); font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-bottom:2px; }
+.router-spec-val { font-size:13px; font-weight:700; color:var(--text); font-family:'DM Mono',monospace; }
+.router-spec-val.ok   { color:var(--good); }
+.router-spec-val.warn { color:var(--bad-mid); }
+
+.lookup-loading { display:flex; align-items:center; gap:10px; padding:12px 13px; background:var(--surface2); border-radius:var(--radius-sm); margin-top:10px; font-size:13px; color:var(--text2); }
+.spinner { width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--navy-mid); border-radius:50%; animation:spin .7s linear infinite; flex-shrink:0; }
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ── checklist ── */
+.check-item { display:flex; align-items:flex-start; gap:12px; padding:11px 0; border-bottom:.5px solid var(--border); cursor:pointer; user-select:none; }
+.check-item:last-child { border-bottom:none; padding-bottom:0; }
+.check-item:first-child { padding-top:0; }
+.check-box { width:24px; height:24px; border-radius:7px; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; flex-shrink:0; transition:all .2s; margin-top:1px; }
+.check-box.on { background:var(--good-mid); border-color:var(--good-mid); }
+.check-box svg { opacity:0; transition:opacity .15s; }
+.check-box.on svg { opacity:1; }
+.check-texts { flex:1; }
+.check-main { font-size:14px; font-weight:500; line-height:1.4; }
+.check-sub  { font-size:11px; color:var(--text3); margin-top:2px; }
+
+/* ── speed guide ── */
+.sg-step { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:.5px solid var(--border); }
+.sg-step:last-child { border-bottom:none; padding-bottom:0; }
+.sg-num  { width:24px; height:24px; border-radius:50%; background:var(--navy); color:#fff; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:1px; }
+.sg-text { flex:1; font-size:13px; line-height:1.6; }
+.sg-text strong { font-weight:700; color:var(--text); }
+.sg-sub  { font-size:11px; color:var(--text3); margin-top:2px; }
+.open-link-btn { display:flex; align-items:center; justify-content:space-between; width:100%; padding:13px 14px; border:1.5px solid var(--navy-mid); border-radius:var(--radius-sm); background:var(--navy-light); font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; color:var(--navy); margin-top:12px; text-decoration:none; }
+
+/* ── speed input ── */
+.speed-num { font-family:'DM Mono',monospace; font-size:52px; font-weight:500; text-align:center; letter-spacing:-2px; line-height:1; margin:8px 0 4px; }
+.speed-unit-label { text-align:center; font-size:12px; color:var(--text3); margin-bottom:14px; }
+.speed-track { height:10px; background:var(--surface2); border-radius:5px; overflow:hidden; margin-bottom:6px; }
+.speed-fill  { height:100%; border-radius:5px; transition:width .2s, background .3s; }
+.speed-marks { display:flex; justify-content:space-between; font-size:10px; color:var(--text3); font-family:'DM Mono',monospace; }
+.speed-status { margin-top:10px; padding:8px 12px; border-radius:var(--radius-sm); font-size:13px; font-weight:500; }
+input[type=range] { width:100%; -webkit-appearance:none; appearance:none; height:6px; border-radius:3px; background:var(--surface2); outline:none; margin:4px 0 12px; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; width:28px; height:28px; border-radius:50%; background:var(--navy); cursor:pointer; box-shadow:0 2px 6px rgba(0,0,0,.2); }
+
+/* ── nav ── */
+.nav-bar { display:flex; gap:10px; padding:0 16px 16px; position:sticky; bottom:0; background:linear-gradient(transparent, #F0EEE8 30%); }
+.btn-back { padding:14px 18px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); font-size:14px; cursor:pointer; color:var(--text2); font-family:'Noto Sans KR',sans-serif; font-weight:500; }
+.btn-next { flex:1; padding:14px; border:none; border-radius:var(--radius); background:var(--navy); color:#fff; font-size:15px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; transition:background .15s, transform .1s; }
+.btn-next:active { transform:scale(.98); background:#0C447C; }
+
+/* ── result ── */
+.grade-hero { border-radius:var(--radius); padding:24px 20px; margin-bottom:12px; text-align:center; }
+.grade-hero.good { background:var(--good-bg); border:1px solid var(--good-border); }
+.grade-hero.warn { background:var(--warn-bg); border:1px solid var(--warn-border); }
+.grade-hero.bad  { background:var(--bad-bg);  border:1px solid var(--bad-border); }
+.grade-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 14px; border-radius:20px; font-size:11px; font-weight:700; letter-spacing:.08em; margin-bottom:8px; }
+.good .grade-chip { background:var(--good-mid); color:#EAF3DE; }
+.warn .grade-chip { background:var(--warn-mid); color:#FAEEDA; }
+.bad  .grade-chip { background:var(--bad-mid);  color:#FCEBEB; }
+.grade-label { font-size:26px; font-weight:700; margin-bottom:6px; line-height:1.2; }
+.good .grade-label { color:var(--good); }
+.warn .grade-label { color:var(--warn); }
+.bad  .grade-label { color:var(--bad); }
+.grade-desc { font-size:13px; color:var(--text2); line-height:1.6; }
+.gsb-row { display:flex; justify-content:space-between; font-size:11px; color:var(--text2); margin-bottom:4px; margin-top:14px; }
+.gsb-track { height:8px; background:rgba(0,0,0,.1); border-radius:4px; overflow:hidden; }
+.gsb-fill  { height:100%; border-radius:4px; }
+
+.summary-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.sum-cell { background:var(--surface2); border-radius:var(--radius-sm); padding:10px 12px; }
+.sum-lbl  { font-size:10px; color:var(--text3); font-weight:700; letter-spacing:.05em; text-transform:uppercase; margin-bottom:3px; }
+.sum-val  { font-size:13px; font-weight:700; color:var(--text); }
+
+.solution-box { border-left:3px solid; padding:11px 13px; border-radius:0 var(--radius-sm) var(--radius-sm) 0; margin-bottom:12px; font-size:13px; line-height:1.7; }
+.solution-box.warn-box { border-color:var(--warn-border); background:#fffaf2; color:var(--warn); }
+.solution-box.bad-box  { border-color:var(--bad-border);  background:#fff8f8; color:var(--bad); }
+.solution-box.good-box { border-color:var(--good-border); background:#f6fbf0; color:var(--good); }
+
+.buy-btn { display:flex; align-items:center; justify-content:space-between; width:100%; padding:13px 14px; border:1px solid; border-radius:var(--radius-sm); background:var(--surface); font-size:14px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; margin-bottom:8px; text-decoration:none; transition:opacity .15s, transform .1s; }
+.buy-btn:active { transform:scale(.98); opacity:.8; }
+.buy-btn:last-child { margin-bottom:0; }
+.buy-btn.blue  { border-color:#378ADD; color:#0C447C; }
+.buy-btn.amber { border-color:var(--warn-border); color:var(--warn); }
+.buy-btn.green { border-color:var(--good-border); color:var(--good); }
+
+.rec-row { display:flex; gap:10px; align-items:flex-start; padding:9px 0; border-bottom:.5px solid var(--border); }
+.rec-row:last-child { border-bottom:none; padding-bottom:0; }
+.rec-row:first-child { padding-top:0; }
+.rec-dot  { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:5px; }
+.rec-text { font-size:13px; line-height:1.5; color:var(--text); flex:1; }
+
+.kt-tip { display:flex; gap:10px; background:var(--navy-light); border-radius:var(--radius-sm); padding:12px 13px; }
+.kt-tip-icon { font-size:18px; flex-shrink:0; margin-top:1px; }
+.kt-tip-text { font-size:13px; color:#0C447C; line-height:1.6; }
+.kt-tip-text strong { font-weight:700; }
+
+/* ── send to sheets button ── */
+.sheets-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:15px; border:none; border-radius:var(--radius); font-size:15px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; margin-bottom:10px; transition:background .15s; }
+.sheets-btn.idle    { background:#0F9D58; color:#fff; }
+.sheets-btn.sending { background:#0b7c45; color:#fff; }
+.sheets-btn.done    { background:#EAF3DE; color:var(--good); border:1px solid var(--good-border); cursor:default; }
+.sheets-btn.error   { background:#FCEBEB; color:var(--bad);  border:1px solid var(--bad-border);  }
+.save-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; padding:14px; border:none; border-radius:var(--radius); background:var(--navy); color:#fff; font-size:14px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; margin-bottom:10px; }
+.new-btn  { display:flex; align-items:center; justify-content:center; width:100%; padding:14px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); color:var(--text2); font-size:14px; font-weight:500; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+
+/* ── sheets setup notice ── */
+.setup-notice { background:var(--surface2); border-radius:var(--radius-sm); padding:11px 13px; margin-bottom:12px; font-size:12px; color:var(--text2); line-height:1.6; border-left:3px solid var(--navy-mid); }
+.setup-notice strong { color:var(--text); font-weight:700; }
+.setup-notice code { background:var(--border); padding:1px 5px; border-radius:3px; font-family:'DM Mono',monospace; font-size:11px; }
+
+/* ── history ── */
+.history-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:100; display:flex; align-items:flex-end; }
+.history-sheet   { background:var(--surface); border-radius:20px 20px 0 0; padding:20px 16px 40px; width:100%; max-height:70vh; overflow-y:auto; }
+.history-header  { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.history-title   { font-size:16px; font-weight:700; }
+.history-close   { background:var(--surface2); border:none; border-radius:50%; width:32px; height:32px; font-size:16px; cursor:pointer; }
+.hist-item  { background:var(--surface2); border-radius:var(--radius-sm); padding:12px; margin-bottom:8px; }
+.hist-top   { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+.hist-org   { font-size:14px; font-weight:700; }
+.hist-badge { font-size:11px; font-weight:700; padding:3px 10px; border-radius:12px; }
+.hist-badge.good { background:var(--good-bg); color:var(--good); }
+.hist-badge.warn { background:var(--warn-bg); color:var(--warn); }
+.hist-badge.bad  { background:var(--bad-bg);  color:var(--bad); }
+.hist-meta  { font-size:12px; color:var(--text3); }
+.fab { position:fixed; bottom:90px; right:20px; width:48px; height:48px; border-radius:50%; background:var(--navy); color:#fff; border:none; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(4,44,83,.4); z-index:50; }
+
+/* ── settings modal ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200; display:flex; align-items:flex-end; }
+.modal-sheet   { background:var(--surface); border-radius:20px 20px 0 0; padding:20px 16px 48px; width:100%; }
+.modal-header  { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.modal-title   { font-size:16px; font-weight:700; }
+.modal-close   { background:var(--surface2); border:none; border-radius:50%; width:32px; height:32px; font-size:16px; cursor:pointer; }
+.modal-label   { font-size:12px; font-weight:700; color:var(--text2); margin-bottom:6px; display:block; }
+.modal-input   { width:100%; border:1px solid var(--border); border-radius:var(--radius-sm); padding:11px 13px; font-size:14px; background:var(--surface); color:var(--text); font-family:'DM Mono',monospace; margin-bottom:12px; }
+.modal-input:focus { outline:none; border-color:var(--navy-mid); box-shadow:0 0 0 3px rgba(24,95,165,.12); }
+.modal-save { width:100%; padding:14px; border:none; border-radius:var(--radius); background:var(--navy); color:#fff; font-size:15px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; }
+.modal-note { font-size:11px; color:var(--text3); line-height:1.6; margin-top:-6px; margin-bottom:12px; }
+
+.hidden { display:none !important; }
+
+@media (prefers-color-scheme: dark) {
+  :root { --surface:#1c1c1e; --surface2:#2c2c2e; --border:rgba(255,255,255,.1); --text:#f0f0f0; --text2:#aaa; --text3:#666; }
+  body,html { background:#111; }
+  .app-header,.progress-wrap,.step-info { background:#021d38; }
+  .kt-tip { background:#0a2540; }
+  .kt-tip-text { color:#7ab8f5; }
+  input[type=range] { background:var(--surface2); }
+  .solution-box.warn-box { background:#1e1205; }
+  .solution-box.bad-box  { background:#1e0505; }
+  .solution-box.good-box { background:#061805; }
+  .open-link-btn { background:#0a2540; }
+  .router-spec-cell { background:var(--surface); }
+}
+</style>
+</head>
+<body>
+
+<!-- 설정 버튼 (우상단) -->
+<button onclick="openSettings()" style="position:fixed; top:12px; right:16px; z-index:300; background:rgba(255,255,255,.15); border:none; border-radius:20px; padding:6px 12px; color:#fff; font-size:12px; font-weight:700; cursor:pointer; font-family:'Noto Sans KR',sans-serif; display:flex; align-items:center; gap:5px;">
+  ⚙️ 설정
+</button>
+
+<div class="app-header">
+  <div class="brand-tag">OnlyOne Kids For School</div>
+  <div class="app-title">인터넷 환경 안심 점검 서비스</div>
+  <div class="app-sub">현장 점검 → 자동 등급 산출 → 본사 전송</div>
+</div>
+<div class="progress-wrap">
+  <div class="step-dots">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+  </div>
+</div>
+<div class="step-info" id="stepInfo">단계 1 / 3 — 기본 정보 입력</div>
+
+<!-- ══ STEP 0 : 기본 정보 ══ -->
+<div id="step0">
+  <div class="content">
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        방문 기관 정보
+      </div>
+      <div class="field"><label class="field-label">기관명 *</label><input type="text" id="orgName" placeholder="예) 햇살어린이집"></div>
+      <div class="field"><label class="field-label">담당자명</label><input type="text" id="managerName" placeholder="예) 김원장"></div>
+      <div class="num-wrap">
+        <label class="num-label">학급 수</label>
+        <div class="num-picker">
+          <button class="num-btn" onclick="nudge('classCount',-1)">−</button>
+          <div class="num-val" id="classCount_disp">1</div>
+          <button class="num-btn" onclick="nudge('classCount',1)">+</button>
+        </div>
+        <div class="num-unit">학급</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        영업자 정보
+      </div>
+      <div class="field"><label class="field-label">지사명</label><input type="text" id="branchName" placeholder="예) 서울 강남지사"></div>
+      <div class="field"><label class="field-label">영업자명 *</label><input type="text" id="salesName" placeholder="예) 박지수"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+        사용 예정 패드 수
+      </div>
+      <div class="num-wrap" style="margin-bottom:8px;">
+        <div class="num-picker">
+          <button class="num-btn" onclick="nudge('deviceCount',-1)">−</button>
+          <div class="num-val" id="deviceCount_disp">5</div>
+          <button class="num-btn" onclick="nudge('deviceCount',1)">+</button>
+        </div>
+        <div class="num-unit">대</div>
+      </div>
+      <div style="font-size:11px; color:var(--text3); margin-bottom:6px;">빠른 선택</div>
+      <div class="ngrid" id="devGrid"></div>
+      <div class="num-tip" id="ram_warn" style="background:#FAEEDA; color:#633806;">⚠️ 20대 이상: RAM 512MB 이상 공유기 필수 권장</div>
+    </div>
+  </div>
+  <div class="nav-bar"><button class="btn-next" onclick="go(1)">다음 — 현장 점검 →</button></div>
+</div>
+
+<!-- ══ STEP 1 : 점검 체크리스트 ══ -->
+<div id="step1" class="hidden">
+  <div class="content">
+
+    <!-- 1. 인터넷 회선 확인 -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+        1단계 — 인터넷 회선 확인
+      </div>
+      <div style="font-size:12px;color:var(--text2);background:var(--navy-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;line-height:1.7;">
+        💡 원장님께 여쭤보세요.<br>확인이 어려운 항목은 건너뛰어도 됩니다.
+      </div>
+      <div class="field">
+        <label class="field-label">인터넷 통신사</label>
+        <div class="tgroup" id="grp_isp">
+          <button class="tbtn" onclick="pickISP(this,'KT')">KT</button>
+          <button class="tbtn" onclick="pickISP(this,'SKT/SK브로드밴드')">SKT/SK브로드</button>
+          <button class="tbtn" onclick="pickISP(this,'LG U+')">LG U+</button>
+          <button class="tbtn" onclick="pickISP(this,'기타')">기타</button>
+        </div>
+      </div>
+      <div class="field" id="plan_field" style="display:none;">
+        <label class="field-label">인터넷 요금제 <span style="font-weight:400;color:var(--text3);">— 모르면 건너뛰기</span></label>
+        <div class="plan-grid" id="plan_grid"></div>
+        <input type="text" id="plan_custom" placeholder="직접 입력 (예: 500메가, 1기가)" style="font-size:13px; border:1px solid var(--border); border-radius:var(--radius-sm); padding:10px 12px; width:100%; background:var(--surface); color:var(--text); font-family:'Noto Sans KR',sans-serif;" oninput="S.planCustom=this.value; S.plan=''; document.querySelectorAll('#plan_grid .plan-btn').forEach(function(b){b.className='plan-btn';});">
+      </div>
+      <div class="field">
+        <label class="field-label">인터넷 회선 사용 방식 <span style="font-weight:400;color:var(--text3);">— 모르면 건너뛰기</span></label>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">💬 "이 인터넷이 우리 원만 쓰는 건가요, 건물 다른 곳과 함께 쓰는 건가요?"</div>
+        <div class="tgroup" id="grp_line">
+          <button class="tbtn" onclick="pick(this,'grp_line','ok')">우리 원 전용</button>
+          <button class="tbtn" onclick="pick(this,'grp_line','warn')">건물 공용</button>
+          <button class="tbtn" onclick="pick(this,'grp_line','blue')">모름</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. 공유기 현황 -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        2단계 — 공유기 현황 확인
+      </div>
+      <div style="font-size:12px;color:var(--text2);background:var(--navy-light);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;line-height:1.7;">
+        💡 공유기는 인터넷 신호를 무선으로 뿌려주는 기기입니다.<br>보통 박스 모양으로 안테나가 달려 있습니다.
+      </div>
+      <div class="field">
+        <label class="field-label">공유기 설치 위치</label>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">교실 안에 있을수록 신호가 안정적입니다.</div>
+        <div class="tgroup" id="grp_loc">
+          <button class="tbtn" onclick="pick(this,'grp_loc','ok')">교실 안 ✓</button>
+          <button class="tbtn" onclick="pick(this,'grp_loc','warn')">복도 또는 다른 곳</button>
+          <button class="tbtn" onclick="pick(this,'grp_loc','blue')">모름</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">공유기 모델명 <span style="font-weight:400;color:var(--text3);">— 뒷면 스티커 확인, 모르면 건너뛰기</span></label>
+        <div class="router-input-wrap">
+          <input type="text" id="routerModel" placeholder="예) ipTIME A3004" oninput="S.routerModel=this.value; clearRouterResult();">
+        </div>
+        <div id="routerResultWrap"></div>
+      </div>
+      <div class="field">
+        <label class="field-label">공유기 구매 시기 <span style="font-weight:400;color:var(--text3);">— 모르면 건너뛰기</span></label>
+        <div class="tgroup" id="grp_year">
+          <button class="tbtn" onclick="pick(this,'grp_year','ok')">최근 3년 이내</button>
+          <button class="tbtn" onclick="pick(this,'grp_year','warn')">3년 이상 됨</button>
+          <button class="tbtn" onclick="pick(this,'grp_year','blue')">모름</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">공유기에서 교실까지 거리 <span style="font-weight:400;color:var(--text3);">— 모르면 건너뛰기</span></label>
+        <div class="tgroup" id="grp_dist">
+          <button class="tbtn" onclick="pick(this,'grp_dist','ok')">가까움 (같은 방)</button>
+          <button class="tbtn" onclick="pick(this,'grp_dist','warn')">조금 멂 (복도 너머)</button>
+          <button class="tbtn" onclick="pick(this,'grp_dist','bad')">많이 멂 (다른 층)</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 건물 구조 -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        3단계 — 건물 구조 확인
+      </div>
+      <div class="field">
+        <label class="field-label">원 건물 층수</label>
+        <div class="tgroup" id="grp_floor">
+          <button class="tbtn" onclick="pick(this,'grp_floor','ok')">단층 (1층만)</button>
+          <button class="tbtn" onclick="pick(this,'grp_floor','warn')">복층 (2층 이상)</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">복도에 콘센트가 있나요?</label>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">신호가 약한 곳에 증폭기 설치 시 필요합니다.</div>
+        <div class="tgroup" id="grp_outlet">
+          <button class="tbtn" onclick="pick(this,'grp_outlet','ok')">있음 ✓</button>
+          <button class="tbtn" onclick="pick(this,'grp_outlet','warn')">없음</button>
+          <button class="tbtn" onclick="pick(this,'grp_outlet','blue')">모름</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. 현재 불편 사항 -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        4단계 — 현재 불편 사항
+      </div>
+      <div class="field">
+        <label class="field-label">평소 인터넷 불편함이 있나요?</label>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;">💬 "평소에 인터넷이 느리거나 끊기는 경우가 있나요?"</div>
+        <div class="tgroup" id="grp_disc">
+          <button class="tbtn" onclick="pick(this,'grp_disc','ok')">없음 ✓</button>
+          <button class="tbtn" onclick="pick(this,'grp_disc','warn')">가끔 있음</button>
+          <button class="tbtn" onclick="pick(this,'grp_disc','bad')">자주 있음 ⚠️</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. 눈으로 확인 -->
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        5단계 — 눈으로 직접 확인
+      </div>
+      <div style="font-size:12px;color:var(--text2);background:var(--surface2);border-radius:var(--radius-sm);padding:10px 12px;margin-bottom:14px;">
+        확인한 항목만 체크하세요.
+      </div>
+      <div class="check-item" onclick="chk(this)">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="check-texts"><div class="check-main">공유기 전원 램프가 녹색으로 켜져 있음</div><div class="check-sub">주황/빨강이면 재시작이 필요합니다</div></div>
+      </div>
+      <div class="check-item" onclick="chk(this)">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="check-texts"><div class="check-main">공유기에 인터넷 케이블이 연결되어 있음</div><div class="check-sub">뒤쪽에 꽂혀 있는 케이블이 헐겁지 않은지 확인</div></div>
+      </div>
+      <div class="check-item" onclick="chk(this)">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="check-texts"><div class="check-main">교실 구석에서도 와이파이 신호가 잡힘</div><div class="check-sub">스마트폰을 들고 교실 끝까지 이동하며 신호 확인</div></div>
+      </div>
+      <div class="check-item" onclick="chk(this)">
+        <div class="check-box"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <div class="check-texts"><div class="check-main">복도에 콘센트가 있음</div><div class="check-sub">신호 증폭기 설치 가능 여부 확인</div></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="nav-bar">
+    <button class="btn-back" onclick="go(0)">← 이전</button>
+    <button class="btn-next" onclick="go(2)">다음 — 속도 측정 →</button>
+  </div>
+</div>
+
+<!-- ══ STEP 2 : 속도 측정 ══ -->
+<div id="step2" class="hidden">
+  <div class="content">
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        측정 전 준비 방법
+      </div>
+      <div class="sg-step"><div class="sg-num">1</div><div class="sg-text"><strong>노트북 또는 PC</strong>를 준비하세요.<div class="sg-sub">스마트폰보다 훨씬 정확한 수치를 얻을 수 있습니다.</div></div></div>
+      <div class="sg-step"><div class="sg-num">2</div><div class="sg-text"><strong>LAN 케이블로 공유기에 직접 연결</strong>하세요.<div class="sg-sub">유선 연결 → 메인 회선 실제 속도를 정확히 측정합니다.</div></div></div>
+      <div class="sg-step"><div class="sg-num">3</div><div class="sg-text">브라우저에서 <strong>fast.com</strong> 접속 → 자동 측정 시작<div class="sg-sub">페이지가 열리면 즉시 측정됩니다.</div></div></div>
+      <div class="sg-step"><div class="sg-num">4</div><div class="sg-text">측정 완료된 <strong>다운로드 속도 (Mbps)</strong>를 아래에 입력<div class="sg-sub">"더 보기"를 누르면 업로드 속도도 확인 가능합니다.</div></div></div>
+      <a href="https://fast.com" target="_blank" class="open-link-btn">🌐 fast.com 바로 열기 <span>→</span></a>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        다운로드 속도 입력
+      </div>
+      <div class="speed-num" id="speedDisp" style="color:#185FA5;">300</div>
+      <div class="speed-unit-label">Mbps — fast.com에서 확인한 숫자를 입력하세요</div>
+      <input type="range" min="0" max="1000" value="300" step="10" id="dlSlider" oninput="updateDL(this.value)">
+      <div class="speed-track"><div class="speed-fill" id="dlFill" style="width:30%;background:#185FA5;"></div></div>
+      <div class="speed-marks"><span>0</span><span>100M</span><span>500M</span><span>1G</span></div>
+      <div class="speed-status" id="speedStatus" style="background:#E6F1FB;color:#0C447C;">ℹ️ 슬라이더를 움직여 측정값을 입력하세요</div>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 7 12 3 8 7"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+        업로드 속도 입력 (선택)
+      </div>
+      <div style="font-size:22px;font-family:'DM Mono',monospace;font-weight:500;text-align:center;margin:8px 0 4px;color:var(--text2);" id="ulDisp">100 Mbps ↑</div>
+      <input type="range" min="0" max="500" value="100" step="10" id="ulSlider" oninput="document.getElementById('ulDisp').textContent=this.value+' Mbps ↑'">
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        특이 사항 메모
+      </div>
+      <div class="field"><textarea id="memo" rows="3" placeholder="현장에서 관찰된 특이 사항을 기록하세요..."></textarea></div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="btn-back" onclick="go(1)">← 이전</button>
+    <button class="btn-next" onclick="calcAndShow()">등급 산출 및 결과 보기 →</button>
+  </div>
+</div>
+
+<!-- ══ STEP 3 : 결과 리포트 ══ -->
+<div id="step3" class="hidden">
+  <div class="content">
+    <div id="gradeHero"></div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        점검 요약
+      </div>
+      <div class="summary-grid" id="summaryGrid"></div>
+    </div>
+    <!-- 공유기 사양 카드 (조회 시에만 표시) -->
+    <div id="routerSummaryCard"></div>
+    <div id="solutionWrap"></div>
+    <div class="card">
+      <div class="card-title">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        비즈니스 가이드
+      </div>
+      <div class="kt-tip">
+        <span class="kt-tip-icon">📡</span>
+        <div class="kt-tip-text">
+          기본 회선은 <strong>KT 1기가급</strong>을 권장합니다.<br>
+          패드 20대 이상 운영 시 공유기는 <strong>RAM 512MB 이상</strong> 모델 교체를 권고합니다.<br>
+          증폭기 설치 시 복도 콘센트를 활용하고 메인 공유기와 <strong>무선 연결 방식</strong>으로 간편 설치하세요.
+        </div>
+      </div>
+    </div>
+
+    <!-- 자동 전송 상태 표시 (조용히) -->
+    <div id="autoSyncStatus"></div>
+    <button class="new-btn" onclick="resetAll()">+ 새 점검 시작</button>
+  </div>
+</div>
+
+<button class="fab hidden" id="histFab" onclick="showHistory()">📋</button>
+
+<!-- 이력 시트 -->
+<div class="history-overlay hidden" id="histOverlay" onclick="closeHistory(event)">
+  <div class="history-sheet" onclick="event.stopPropagation()">
+    <div class="history-header">
+      <div class="history-title">점검 이력 (로컬)</div>
+      <button class="history-close" onclick="closeHistory()">✕</button>
+    </div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- 설정 모달 -->
+<div class="modal-overlay hidden" id="settingsModal" onclick="closeSettings(event)">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ 설정</div>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+
+    <label class="modal-label">Google Sheets Web App URL</label>
+    <input class="modal-input" type="url" id="settingsSheetUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <div class="modal-note">
+      Apps Script 배포 후 생성된 URL을 입력하세요.<br>
+      설정 방법은 아래 가이드를 참고하세요.
+    </div>
+
+    <label class="modal-label">Anthropic API Key (공유기 AI 조회용)</label>
+    <input class="modal-input" type="password" id="settingsApiKey" placeholder="sk-ant-...">
+    <div class="modal-note">
+      API 키는 이 기기에만 저장됩니다. 외부로 전송되지 않습니다.
+    </div>
+
+    <button class="modal-save" onclick="saveSettings()">저장</button>
+    <div style="margin-top:16px; padding:12px; background:var(--surface2); border-radius:var(--radius-sm); font-size:11px; color:var(--text2); line-height:1.8;">
+      <strong style="display:block; margin-bottom:6px;">📋 Google Sheets 연동 설정 순서</strong>
+      1. Google Sheets 새 문서 생성<br>
+      2. 메뉴: 확장 프로그램 → Apps Script<br>
+      3. 아래 코드를 붙여넣고 저장<br>
+      4. 배포 → 새 배포 → 웹 앱 선택<br>
+      5. 액세스: <strong>모든 사용자</strong> 설정 후 배포<br>
+      6. 생성된 URL을 위 칸에 입력
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer; font-weight:700; color:var(--navy-mid);">Apps Script 코드 보기 ▼</summary>
+        <pre style="margin-top:8px; background:var(--surface); padding:10px; border-radius:6px; font-size:10px; overflow-x:auto; white-space:pre-wrap; color:var(--text); font-family:'DM Mono',monospace;">function doPost(e) {
+  var sheet = SpreadsheetApp
+    .getActiveSpreadsheet()
+    .getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  var row = [
+    data.timestamp, data.branch, data.sales,
+    data.org, data.manager, data.classes,
+    data.devices, data.isp, data.plan,
+    data.routerModel, data.routerRAM,
+    data.routerRamOk, data.loc, data.year,
+    data.dist, data.disc, data.speed,
+    data.grade, data.memo
+  ];
+  sheet.appendRow(row);
+  return ContentService
+    .createTextOutput(JSON.stringify({ok:true}))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doGet(e) {
+  return ContentService
+    .createTextOutput("OK");
+}</pre>
+      </details>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════
+   STATE
+═══════════════════════════════════ */
+var S = {
+  classCount:1, deviceCount:5,
+  isp:'', plan:'', planMbps:0, planCustom:'',
+  loc:'', year:'', dist:'', disc:'',
+  line:'', floor:'', outlet:'',
+  routerModel:'', routerInfo:null,
+  speed:300
+};
+
+/* ═══════════════════════════════════
+   SETTINGS (localStorage)
+═══════════════════════════════════ */
+function loadSettings(){
+  var url = localStorage.getItem('ok1_sheetUrl')||'';
+  var key = localStorage.getItem('ok1_apiKey')||'';
+  document.getElementById('settingsSheetUrl').value = url;
+  document.getElementById('settingsApiKey').value   = key;
+  return {url:url, key:key};
+}
+function saveSettings(){
+  var url = document.getElementById('settingsSheetUrl').value.trim();
+  var key = document.getElementById('settingsApiKey').value.trim();
+  localStorage.setItem('ok1_sheetUrl', url);
+  localStorage.setItem('ok1_apiKey',   key);
+  closeSettings();
+  alert('✅ 설정이 저장되었습니다.');
+}
+function openSettings(){
+  loadSettings();
+  document.getElementById('settingsModal').classList.remove('hidden');
+}
+function closeSettings(e){
+  if(!e || e.target===document.getElementById('settingsModal'))
+    document.getElementById('settingsModal').classList.add('hidden');
+}
+
+/* ═══════════════════════════════════
+   NUMBER GRID
+═══════════════════════════════════ */
+(function(){
+  var g=document.getElementById('devGrid');
+  for(var i=1;i<=30;i++){
+    var b=document.createElement('button');
+    b.className='ngrid-btn'+(i===5?' sel':'');
+    b.textContent=i; b.dataset.v=i;
+    b.onclick=(function(val,btn){ return function(){
+      document.querySelectorAll('#devGrid .ngrid-btn').forEach(function(x){ x.className='ngrid-btn'; });
+      btn.className='ngrid-btn '+(val>=20?'sel-hi':'sel');
+      S.deviceCount=val;
+      document.getElementById('deviceCount_disp').textContent=val;
+      document.getElementById('ram_warn').classList.toggle('show', val>=20);
+    };})(i,b);
+    g.appendChild(b);
+  }
+})();
+
+function nudge(key,delta){
+  var c={classCount:{min:1,max:30,id:'classCount_disp'}, deviceCount:{min:1,max:30,id:'deviceCount_disp'}};
+  S[key]=Math.min(c[key].max, Math.max(c[key].min, S[key]+delta));
+  document.getElementById(c[key].id).textContent=S[key];
+  if(key==='deviceCount'){
+    document.getElementById('ram_warn').classList.toggle('show', S[key]>=20);
+    document.querySelectorAll('#devGrid .ngrid-btn').forEach(function(b){
+      var v=parseInt(b.dataset.v);
+      b.className='ngrid-btn'+(v===S[key]?(v>=20?' sel-hi':' sel'):'');
+    });
+  }
+}
+
+/* ═══════════════════════════════════
+   ISP / PLAN
+═══════════════════════════════════ */
+var ISP_PLANS={
+  'KT':[{name:'슬림',mbps:100,tier:'warn'},{name:'에센스',mbps:500,tier:'ok'},{name:'기가',mbps:1000,tier:'ok'},{name:'10기가',mbps:2500,tier:'ok'}],
+  'SKT/SK브로드밴드':[{name:'베이직',mbps:100,tier:'warn'},{name:'플러스',mbps:500,tier:'ok'},{name:'기가',mbps:1000,tier:'ok'},{name:'10기가',mbps:2500,tier:'ok'}],
+  'LG U+':[{name:'라이트',mbps:100,tier:'warn'},{name:'플러스',mbps:500,tier:'ok'},{name:'기가',mbps:1000,tier:'ok'},{name:'10기가',mbps:2500,tier:'ok'}],
+  '기타':[{name:'100M 이하',mbps:100,tier:'warn'},{name:'500Mbps',mbps:500,tier:'ok'},{name:'1Gbps',mbps:1000,tier:'ok'}]
+};
+function pickISP(btn,name){
+  document.querySelectorAll('#grp_isp .tbtn').forEach(function(b){ b.className='tbtn'; });
+  btn.classList.add('sel-blue');
+  S.isp=name; S.plan=''; S.planMbps=0;
+  var plans=ISP_PLANS[name]||[];
+  document.getElementById('plan_grid').innerHTML=plans.map(function(p){
+    var spd=p.mbps>=1000?(p.mbps/1000)+'G':p.mbps+'M';
+    return '<button class="plan-btn" onclick="pickPlan(this,\''+p.name+'\','+p.mbps+',\''+p.tier+'\')"><span class="ps">'+spd+'</span><span class="pn">'+p.name+'</span></button>';
+  }).join('');
+  document.getElementById('plan_field').style.display='block';
+  document.getElementById('plan_custom').value=''; S.planCustom='';
+}
+function pickPlan(btn,name,mbps,tier){
+  document.querySelectorAll('#plan_grid .plan-btn').forEach(function(b){ b.className='plan-btn'; });
+  btn.classList.add('sel-'+tier);
+  S.plan=name; S.planMbps=mbps;
+  document.getElementById('plan_custom').value=''; S.planCustom='';
+}
+
+/* ═══════════════════════════════════
+   ROUTER AI LOOKUP
+═══════════════════════════════════ */
+function clearRouterResult(){
+  S.routerInfo=null;
+  document.getElementById('routerResultWrap').innerHTML='';
+}
+
+async function lookupRouter(){
+  var model=document.getElementById('routerModel').value.trim();
+  if(!model){ alert('공유기 모델명을 입력해 주세요.'); return; }
+
+  var apiKey=localStorage.getItem('ok1_apiKey')||'';
+  if(!apiKey){
+    alert('⚙️ 설정에서 Anthropic API 키를 먼저 입력해 주세요.');
+    openSettings();
+    return;
+  }
+
+  var btn=document.getElementById('lookupBtn');
+  btn.disabled=true; btn.textContent='조회 중…'; btn.classList.add('loading');
+  document.getElementById('routerResultWrap').innerHTML=
+    '<div class="lookup-loading"><div class="spinner"></div>AI가 공유기 사양을 조회하고 있습니다…</div>';
+
+  var prompt='공유기 모델명: "'+model+'"\n\n이 공유기의 정확한 사양을 JSON으로만 답하세요. 다른 텍스트 없이 JSON만 출력하세요.\n형식:\n{"found":true,"fullName":"정식 모델명","manufacturer":"제조사","ram_mb":숫자(MB단위 정수),"wifi_standard":"WiFi 5 or WiFi 6 or WiFi 6E 등","max_speed_mbps":숫자,"ports":"LAN 포트 개수와 속도","memo":"한줄 특징 요약"}\n모델을 알 수 없으면: {"found":false,"fullName":"","manufacturer":"","ram_mb":0,"wifi_standard":"","max_speed_mbps":0,"ports":"","memo":""}';
+
+  try {
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:400,messages:[{role:'user',content:prompt}]})
+    });
+    var data=await res.json();
+    var raw=data.content&&data.content[0]?data.content[0].text:'';
+    var clean=raw.replace(/```json|```/g,'').trim();
+    var info=JSON.parse(clean);
+    S.routerInfo=info;
+    renderRouterResult(info, model);
+  } catch(err){
+    document.getElementById('routerResultWrap').innerHTML=
+      '<div style="padding:10px 12px; background:var(--bad-bg); border-radius:var(--radius-sm); font-size:13px; color:var(--bad); margin-top:8px;">⚠️ 조회 실패 — API 키를 확인하거나 모델명을 다시 입력해 보세요.</div>';
+  }
+  btn.disabled=false; btn.textContent='AI 조회'; btn.classList.remove('loading');
+}
+
+function renderRouterResult(info, rawModel){
+  var wrap=document.getElementById('routerResultWrap');
+  if(!info.found){
+    wrap.innerHTML='<div style="padding:10px 12px; background:var(--surface2); border-radius:var(--radius-sm); font-size:13px; color:var(--text2); margin-top:8px;">🔍 "<strong>'+rawModel+'</strong>" 모델 정보를 찾을 수 없습니다. 모델명을 정확히 입력해 주세요.</div>';
+    return;
+  }
+  var ramOk=info.ram_mb>=512;
+  var tier=ramOk?'ok':'warn';
+  var ramColor=ramOk?'ok':'warn';
+  var icon=ramOk?'✅':'⚠️';
+  var titleText=ramOk?'RAM 충분 — 양호':'RAM 부족 — 교체 권장';
+  wrap.innerHTML=
+    '<div class="router-result" style="margin-top:10px;">'+
+    '<div class="router-result-header '+tier+'">'+
+    '<div class="router-result-icon">'+icon+'</div>'+
+    '<div class="router-result-main">'+
+    '<div class="router-result-name">'+info.fullName+'</div>'+
+    '<div class="router-result-sub">'+titleText+'</div>'+
+    '</div></div>'+
+    '<div class="router-spec-grid">'+
+    '<div class="router-spec-cell"><div class="router-spec-lbl">RAM</div><div class="router-spec-val '+ramColor+'">'+info.ram_mb+' MB</div></div>'+
+    '<div class="router-spec-cell"><div class="router-spec-lbl">Wi-Fi</div><div class="router-spec-val">'+info.wifi_standard+'</div></div>'+
+    '<div class="router-spec-cell"><div class="router-spec-lbl">최대 속도</div><div class="router-spec-val">'+info.max_speed_mbps+' Mbps</div></div>'+
+    '<div class="router-spec-cell"><div class="router-spec-lbl">포트</div><div class="router-spec-val">'+info.ports+'</div></div>'+
+    '</div>'+
+    (info.memo?'<div style="padding:8px 13px; font-size:11px; color:var(--text3); border-top:1px solid var(--border);">'+info.memo+'</div>':'')+
+    '</div>';
+}
+
+/* ═══════════════════════════════════
+   TOGGLE / CHECK
+═══════════════════════════════════ */
+function pick(btn,grpId,color){
+  document.querySelectorAll('#'+grpId+' .tbtn').forEach(function(b){ b.className='tbtn'; });
+  btn.classList.add('sel-'+color);
+  var key=grpId.replace('grp_','');
+  S[key]=btn.textContent.replace(/[✓⚠️]/g,'').trim();
+}
+function chk(item){ item.querySelector('.check-box').classList.toggle('on'); }
+
+/* ═══════════════════════════════════
+   SPEED
+═══════════════════════════════════ */
+function updateDL(v){
+  v=parseInt(v); S.speed=v;
+  document.getElementById('speedDisp').textContent=v;
+  var fill=document.getElementById('dlFill');
+  fill.style.width=Math.min(v/10,100)+'%';
+  var dev=S.deviceCount, need=dev*10, ratio=Math.round(v/need*100);
+  var col,css,html;
+  if(v>=500){ col='#639922'; css='background:#EAF3DE;color:#27500A;'; html='✅ <strong>충분한 속도</strong> — 패드 '+dev+'대 기준 충족률 '+ratio+'%'; }
+  else if(v>=200){ col='#BA7517'; css='background:#FAEEDA;color:#633806;'; html='⚠️ <strong>보통 속도</strong> — 패드 '+dev+'대 기준 충족률 '+ratio+'%'; }
+  else { col='#E24B4A'; css='background:#FCEBEB;color:#791F1F;'; html='🔴 <strong>속도 부족</strong> — 필요 '+need+'Mbps 대비 '+ratio+'% 수준'; }
+  fill.style.background=col;
+  document.getElementById('speedDisp').style.color=col;
+  var st=document.getElementById('speedStatus');
+  st.style.cssText=css+'margin-top:10px;padding:8px 12px;border-radius:8px;font-size:13px;font-weight:500;';
+  st.innerHTML=html;
+}
+
+/* ═══════════════════════════════════
+   GRADE CALC
+═══════════════════════════════════ */
+function calcGrade(){
+  var sp=S.speed;
+  var badDisc=S.disc==='자주 있음', warnDisc=S.disc==='가끔 있음';
+  var badLoc=S.loc==='복도 또는 다른 곳';
+  var oldRouter=S.year==='3년 이상 됨';
+  var badDist=S.dist==='많이 멂 (다른 층)';
+  var warnDist=S.dist==='조금 멂 (복도 너머)';
+  var sharedLine=S.line==='건물 공용';
+  var ramBad=S.routerInfo&&S.routerInfo.found&&S.routerInfo.ram_mb<512;
+  var speedBad=sp>0&&sp<500;
+  var speedWarn=sp>=500&&sp<1000;
+  var speedGood=sp>=1000;
+  if(badDisc||speedBad||(sharedLine&&speedWarn)||ramBad||(badLoc&&badDist)) return 'bad';
+  if(warnDisc||speedWarn||badLoc||oldRouter||warnDist||sharedLine) return 'warn';
+  if(speedGood&&!badLoc&&!badDist) return 'good';
+  return 'warn';
+}
+
+/* ═══════════════════════════════════
+   SHOW RESULTS
+═══════════════════════════════════ */
+function calcAndShow(){
+  var grade=calcGrade(), sp=S.speed;
+  var G={good:'양호',warn:'개선 권장',bad:'개선 필요'};
+  var I={good:'✅',warn:'⚠️',bad:'🔴'};
+  var D={
+    good:'인터넷 환경이 온리원키즈포스쿨 운영에 적합합니다.',
+    warn:'일부 환경 개선이 필요합니다. 아래 단계별 조치를 확인하세요.',
+    bad:'인터넷 환경 개선이 필요합니다. 아래 조치사항을 즉시 검토하세요.'
+  };
+  var bc={good:'#639922',warn:'#BA7517',bad:'#E24B4A'};
+  var speedBar=Math.min(sp/10,100);
+
+  document.getElementById('gradeHero').innerHTML=
+    '<div class="grade-hero '+grade+'">'+
+    '<div class="grade-chip">'+I[grade]+' '+G[grade]+' 등급</div>'+
+    '<div class="grade-label">'+G[grade]+'</div>'+
+    '<div class="grade-desc">'+D[grade]+'</div>'+
+    '<div class="gsb-row"><span>측정 속도</span><span>'+sp+' Mbps'+(sp>=1000?' ✓ 1기가 달성':'')+'</span></div>'+
+    '<div class="gsb-track"><div class="gsb-fill" style="width:'+speedBar+'%;background:'+bc[grade]+';"></div></div>'+
+    '<div style="font-size:11px;color:var(--text2);margin-top:5px;">권장: 1기가(1,000Mbps) 이상</div>'+
+    '</div>';
+
+  var ispEl=document.querySelector('#grp_isp .sel-blue');
+  var ispVal=ispEl?ispEl.textContent.trim():'미입력';
+  var planVal=S.plan||(S.planCustom||'미입력');
+  document.getElementById('summaryGrid').innerHTML=
+    '<div class="sum-cell"><div class="sum-lbl">측정 속도</div><div class="sum-val">'+sp+' Mbps</div></div>'+
+    '<div class="sum-cell"><div class="sum-lbl">통신사</div><div class="sum-val">'+ispVal+'</div></div>'+
+    '<div class="sum-cell"><div class="sum-lbl">패드 수</div><div class="sum-val">'+S.deviceCount+'대</div></div>'+
+    '<div class="sum-cell"><div class="sum-lbl">요금제</div><div class="sum-val" style="font-size:11px;">'+planVal+'</div></div>'+
+    '<div class="sum-cell"><div class="sum-lbl">공유기 위치</div><div class="sum-val">'+(S.loc||'—')+'</div></div>'+
+    '<div class="sum-cell"><div class="sum-lbl">불편 정도</div><div class="sum-val">'+(S.disc||'—')+'</div></div>';
+
+  document.getElementById('routerSummaryCard').innerHTML='';
+
+  /* ── 3단계 솔루션 ── */
+  var sw=document.getElementById('solutionWrap'); sw.innerHTML='';
+  var ramBad=S.routerInfo&&S.routerInfo.found&&S.routerInfo.ram_mb<512;
+  var badLoc=S.loc==='복도 또는 다른 곳';
+  var badDist=S.dist==='많이 멂 (다른 층)';
+  var warnDist=S.dist==='조금 멂 (복도 너머)';
+  var needOutlet=S.outlet==='없음';
+  var multiFloor=S.floor==='복층 (2층 이상)';
+  var sharedLine=S.line==='건물 공용';
+
+  /* 양호 */
+  if(grade==='good'){
+    sw.innerHTML=
+      '<div class="card">'+
+      '<div class="card-title">✅ 환경 점검 결과</div>'+
+      '<div class="solution-box good-box">현재 인터넷 환경은 온리원키즈포스쿨 운영에 적합합니다.<br>1기가 회선과 교실 내 공유기가 안정적으로 구성되어 있습니다.</div>'+
+      '<div class="rec-row"><div class="rec-dot" style="background:#639922;"></div><div class="rec-text">공유기를 교실 안 높은 곳에 설치하면 신호가 더 안정적입니다.</div></div>'+
+      '<div class="rec-row" style="border:none;"><div class="rec-dot" style="background:#639922;"></div><div class="rec-text">6개월마다 정기 점검을 권장합니다.</div></div>'+
+      '</div>';
+    return go(3), document.getElementById('histFab').classList.remove('hidden'), saveLocal(true), autoSendToSheets();
+  }
+
+  /* 개선 권장 / 개선 필요 공통 솔루션 */
+  var html='<div class="card"><div class="card-title">'+(grade==='bad'?'🔴 즉시 개선 필요':'🔧 단계별 개선 방법')+'</div>';
+
+  /* 1단계: 회선 */
+  var step1Color=(sp>0&&sp<1000)?'var(--bad)':'var(--good)';
+  var step1Icon=(sp>0&&sp<1000)?'🔴':'✅';
+  html+='<div style="margin-bottom:16px;">'+
+    '<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:.06em;">STEP 1 — 인터넷 회선</div>'+
+    '<div style="padding:12px;background:'+(sp>=1000?'var(--good-bg)':'var(--bad-bg)')+';border-radius:var(--radius-sm);border:1px solid '+(sp>=1000?'var(--good-border)':'var(--bad-border)')+';margin-bottom:8px;">'+
+    '<div style="font-size:13px;font-weight:700;color:'+(sp>=1000?'var(--good)':'var(--bad)')+';">'+step1Icon+' 현재 속도: '+sp+' Mbps</div>'+
+    '<div style="font-size:12px;color:var(--text2);margin-top:4px;line-height:1.6;">'+(sp>=1000?'1기가 회선 — 온리원 운영에 적합한 속도입니다.':'1기가(1,000Mbps) 미만입니다. 통신사에 1기가 요금제로 업그레이드를 요청하세요.')+'</div>'+
+    '</div>'+
+    (sharedLine?'<div class="rec-row"><div class="rec-dot" style="background:#E24B4A;"></div><div class="rec-text">건물 공용 회선은 다른 층/다른 사무실과 인터넷을 나눠 쓰는 구조입니다. 우리 원 전용 회선으로 교체를 권장합니다.</div></div>':'')+
+    '</div>';
+
+  /* 2단계: 공유기 */
+  var step2Bad=badLoc||ramBad;
+  html+='<div style="margin-bottom:16px;">'+
+    '<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:.06em;">STEP 2 — 교실 내 공유기</div>'+
+    (badLoc?
+      '<div class="rec-row"><div class="rec-dot" style="background:#E24B4A;"></div><div class="rec-text"><strong>공유기가 교실 밖에 있습니다.</strong> 공유기를 수업하는 교실 안으로 이동하거나, 교실마다 별도 공유기를 설치하면 신호가 크게 개선됩니다.</div></div>':
+      '<div class="rec-row"><div class="rec-dot" style="background:#639922;"></div><div class="rec-text">공유기가 교실 안에 있어 신호 환경이 양호합니다.</div></div>')+
+    (ramBad?
+      '<div class="rec-row"><div class="rec-dot" style="background:#E24B4A;"></div><div class="rec-text"><strong>공유기 성능이 부족합니다.</strong> 패드를 여러 대 동시에 사용하면 속도가 느려질 수 있습니다. RAM 512MB 이상의 공유기로 교체를 권장합니다.</div></div>':'')+
+    (S.year==='3년 이상 됨'?
+      '<div class="rec-row"><div class="rec-dot" style="background:#BA7517;"></div><div class="rec-text">공유기를 구매한 지 3년이 넘었습니다. 최신 공유기로 교체하면 속도와 안정성이 향상됩니다.</div></div>':'')+
+    '</div>';
+
+  /* 3단계: 증폭기 */
+  html+='<div>'+
+    '<div style="font-size:12px;font-weight:700;color:var(--text3);margin-bottom:8px;letter-spacing:.06em;">STEP 3 — 신호 보강 (증폭기)</div>'+
+    (badDist||warnDist||multiFloor?
+      '<div class="rec-row"><div class="rec-dot" style="background:#BA7517;"></div><div class="rec-text"><strong>공유기에서 교실까지 거리가 있거나 층이 다릅니다.</strong> 복도나 계단 근처 콘센트에 와이파이 증폭기를 설치하면 신호가 잘 닿지 않는 교실의 인터넷 문제를 해결할 수 있습니다.</div></div>':
+      '<div class="rec-row"><div class="rec-dot" style="background:#639922;"></div><div class="rec-text">공유기와 교실 거리가 가깝습니다. 현재는 증폭기가 필요하지 않습니다.</div></div>')+
+    (needOutlet&&(badDist||warnDist||multiFloor)?
+      '<div class="rec-row"><div class="rec-dot" style="background:#E24B4A;"></div><div class="rec-text">복도에 콘센트가 없으면 증폭기 설치가 어렵습니다. 전기 담당자에게 복도 콘센트 설치 가능 여부를 문의하세요.</div></div>':'')+
+    '</div>';
+
+  html+='</div>';
+  sw.innerHTML=html;
+
+  go(3);
+  document.getElementById('histFab').classList.remove('hidden');
+  saveLocal(true);
+  autoSendToSheets();
+}
+
+/* ═══════════════════════════════════
+   GOOGLE SHEETS 전송
+═══════════════════════════════════ */
+/* 페이로드 공통 생성 */
+function buildPayload(){
+  var grade=calcGrade();
+  var G={good:'양호',warn:'보통',bad:'개선 필요'};
+  var now=new Date();
+  var ts=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(now.getDate()).padStart(2,'0')
+    +' '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  return {
+    timestamp:ts,
+    branch:document.getElementById('branchName').value||'',
+    sales:document.getElementById('salesName').value||'',
+    org:document.getElementById('orgName').value||'',
+    manager:document.getElementById('managerName').value||'',
+    classes:S.classCount, devices:S.deviceCount,
+    isp:S.isp, plan:S.planMbps?(S.planMbps+'Mbps'):(S.planCustom||''),
+    routerModel:S.routerModel||document.getElementById('routerModel').value||'',
+    routerRAM:S.routerInfo&&S.routerInfo.found?S.routerInfo.ram_mb:'',
+    routerRamOk:S.routerInfo&&S.routerInfo.found?(S.routerInfo.ram_mb>=512?'양호':'교체권장'):'',
+    loc:S.loc, year:S.year, dist:S.dist, disc:S.disc,
+    speed:S.speed, grade:G[grade],
+    memo:document.getElementById('memo').value||''
+  };
+}
+
+/* 자동 백그라운드 전송 — 완전 무음 */
+async function autoSendToSheets(){
+  var url='https://script.google.com/macros/s/AKfycbzYD-EZpCJwdJ5OLSxiss_QcLM74tz9apPgKTYkcOOescsne-o9gbfTQl99g4gvIP8keA/exec';
+  try {
+    await fetch(url,{
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(buildPayload())
+    });
+  } catch(err){}
+}
+
+/* ═══════════════════════════════════
+   LOCAL SAVE / HISTORY
+═══════════════════════════════════ */
+function saveLocal(silent){
+  var recs=JSON.parse(localStorage.getItem('ok1_records')||'[]');
+  var grade=calcGrade();
+  var G={good:'양호',warn:'보통',bad:'개선 필요'};
+  var now=new Date();
+  var ds=now.getFullYear()+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+String(now.getDate()).padStart(2,'0');
+  recs.unshift({
+    org:document.getElementById('orgName').value||'(이름없음)',
+    grade:grade, gradeLabel:G[grade], speed:S.speed,
+    devices:S.deviceCount, date:ds,
+    sales:document.getElementById('salesName').value||'',
+    routerModel:S.routerModel||document.getElementById('routerModel').value||'',
+    routerRAM:S.routerInfo&&S.routerInfo.found?S.routerInfo.ram_mb:''
+  });
+  if(recs.length>100) recs=recs.slice(0,100);
+  localStorage.setItem('ok1_records',JSON.stringify(recs));
+  if(!silent) alert('✅ 로컬 저장 완료!\n\n기관: '+(document.getElementById('orgName').value||'—')+'\n등급: '+G[grade]+'\n속도: '+S.speed+'Mbps · 패드 '+S.deviceCount+'대');
+}
+
+function showHistory(){
+  var recs=JSON.parse(localStorage.getItem('ok1_records')||'[]');
+  var list=document.getElementById('histList');
+  list.innerHTML=!recs.length
+    ?'<p style="text-align:center;color:var(--text3);padding:20px 0;">저장된 이력이 없습니다.</p>'
+    :recs.map(function(r){
+      return '<div class="hist-item">'+
+        '<div class="hist-top"><div class="hist-org">'+r.org+'</div><span class="hist-badge '+r.grade+'">'+r.gradeLabel+'</span></div>'+
+        '<div class="hist-meta">'+r.date+(r.sales?' · '+r.sales:'')+' · '+r.speed+'Mbps · 패드 '+(r.devices||'?')+'대'+(r.routerModel?' · '+r.routerModel:'')+
+        (r.routerRAM?' (RAM '+r.routerRAM+'MB)':'')+
+        '</div></div>';
+    }).join('');
+  document.getElementById('histOverlay').classList.remove('hidden');
+}
+function closeHistory(e){ if(!e||e.target===document.getElementById('histOverlay')) document.getElementById('histOverlay').classList.add('hidden'); }
+
+/* ═══════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════ */
+function go(n){
+  for(var i=0;i<4;i++){
+    document.getElementById('step'+i).classList.add('hidden');
+    var d=document.getElementById('dot'+i); d.classList.remove('active','done');
+  }
+  document.getElementById('step'+n).classList.remove('hidden');
+  for(var j=0;j<n;j++) document.getElementById('dot'+j).classList.add('done');
+  document.getElementById('dot'+n).classList.add('active');
+  var L=['단계 1 / 3 — 기본 정보 입력','단계 2 / 3 — 현장 점검 체크리스트','단계 3 / 3 — 속도 측정','점검 완료 — 결과 리포트'];
+  document.getElementById('stepInfo').textContent=L[n];
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function resetAll(){
+  S={classCount:1,deviceCount:5,isp:'',plan:'',planMbps:0,planCustom:'',loc:'',year:'',dist:'',disc:'',line:'',floor:'',outlet:'',routerModel:'',routerInfo:null,speed:300};
+  document.getElementById('classCount_disp').textContent='1';
+  document.getElementById('deviceCount_disp').textContent='5';
+  document.getElementById('ram_warn').classList.remove('show');
+  document.querySelectorAll('#devGrid .ngrid-btn').forEach(function(b){ b.className='ngrid-btn'+(b.dataset.v==='5'?' sel':''); });
+  ['orgName','managerName','branchName','salesName','memo','routerModel','plan_custom'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  document.querySelectorAll('.tbtn').forEach(function(b){ b.className='tbtn'; });
+  document.querySelectorAll('.plan-btn').forEach(function(b){ b.className='plan-btn'; });
+  document.querySelectorAll('.check-box').forEach(function(b){ b.classList.remove('on'); });
+  document.getElementById('plan_field').style.display='none';
+  document.getElementById('routerResultWrap').innerHTML='';
+  document.getElementById('dlSlider').value=300; updateDL(300);
+  document.getElementById('ulSlider').value=100;
+  document.getElementById('ulDisp').textContent='100 Mbps ↑';
+  document.getElementById('histFab').classList.add('hidden');
+  go(0);
+}
+</script>
+</body>
+</html>
